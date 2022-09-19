@@ -1,12 +1,15 @@
 package bot
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"regexp"
 
 	"github.com/bwmarrin/discordgo"
 )
+
+var jokePattern = regexp.MustCompile("(11|once|(.*\\s(11|once)))(\\.|\\.\\.\\.|\\?|!){0,1}$")
 
 func Start(goBot *discordgo.Session) {
 
@@ -33,19 +36,14 @@ func Start(goBot *discordgo.Session) {
 }
 
 func messageHandler(discordSession *discordgo.Session, message *discordgo.MessageCreate) {
+	fmt.Println(message.Author)
 	if message.Author.ID == discordSession.State.User.ID || message.GuildID == "" {
 		return
 	}
 
-	jokePattern, err := regexp.MatchString("(?i)^(11|once|(.*\\s(11|once)))(\\.|\\.\\.\\.|\\?|!){0,1}$", message.Content)
+	isJokeable := jokePattern.MatchString(message.Message.Content)
 
-	if err != nil {
-		log.Fatal(err.Error())
-		return
-	}
-
-	if jokePattern {
-		log.Printf("%s: %s", message.Author.Username, message.Content)
+	if isJokeable {
 		discordSession.ChannelMessageSend(message.ChannelID, "chupalo entonce XD")
 	}
 
